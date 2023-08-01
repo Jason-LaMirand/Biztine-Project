@@ -2,6 +2,10 @@ const express = require("express");
 const ExpressError = require("../expressError")
 const router = express.Router();
 const db = require("../db");
+const slugify = require("slugify");
+
+
+
 
 router.get('/', async (req, res, next) => {
     try {
@@ -11,7 +15,6 @@ router.get('/', async (req, res, next) => {
         return next(e);
     }
 })
-
 
 router.get('/:code', async (req, res, next) => {
     try {
@@ -31,6 +34,7 @@ router.get('/:code', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const { name, description } = req.body;
+        let code = slugify(name, { lower: true });
         const results = await db.query('INSERT INTO companies (name, description) VALUES ($1, $2) RETURNING code, name, description', [code, name, description]);
         return res.status(201).json({ companies: results.rows[0] })
     } catch (e) {
@@ -58,9 +62,9 @@ router.put("/:code", async function (req, res, next) {
 
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:code', async (req, res, next) => {
     try {
-        const results = db.query('DELETE FROM companies', [req.params.id])
+        const results = db.query('DELETE FROM companies', [req.params.code])
         return res.send({ msg: "status: DELETED!" })
     } catch (e) {
         return next(e)
